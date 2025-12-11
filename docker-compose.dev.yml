@@ -1,0 +1,115 @@
+version: '3.8'
+
+# Docker Compose для разработки
+# Использование: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: campusflow-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: schedule
+      POSTGRES_USER: schedule_user
+      POSTGRES_PASSWORD: schedule_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - campusflow-network-dev
+
+  # Backend Spring Boot приложение (для разработки)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: campusflow-backend-dev
+    restart: unless-stopped
+    environment:
+      # База данных
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/schedule
+      SPRING_DATASOURCE_USERNAME: schedule_user
+      SPRING_DATASOURCE_PASSWORD: schedule_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      
+      # JPA/Hibernate (для разработки показываем SQL)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      
+      # Liquibase (отключен для dev, используется Hibernate DDL auto-update)
+      SPRING_LIQUIBASE_ENABLED: false
+      
+      # JWT настройки
+      JWT_SECRET: dev-jwt-secret-key-for-development-only
+      JWT_EXPIRATION: 86400000
+      
+      # Email настройки (отключены для разработки)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: dev@example.com
+      SPRING_MAIL_PASSWORD: dev-password
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: false
+      
+      # CORS
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      
+      # Файлы
+      UPLOAD_DIR: /app/uploads
+      
+      # Профиль
+      SPRING_PROFILES_ACTIVE: dev
+      
+      # Server
+      SERVER_PORT: 8080
+      
+      # DevTools
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/src:/app/src
+      - backend_uploads_dev:/app/uploads
+      - backend_data_dev:/app/data
+    networks:
+      - campusflow-network-dev
+    depends_on:
+      - postgres
+
+  # Frontend React приложение (для разработки)
+  frontend:
+    build:
+      context: ./schedule-hub-uni-main
+      dockerfile: Dockerfile.dev
+    container_name: campusflow-frontend-dev
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://backend:8080
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./schedule-hub-uni-main/src:/app/src
+      - ./schedule-hub-uni-main/public:/app/public
+    networks:
+      - campusflow-network-dev
+    depends_on:
+      - backend
+
+# Именованные volumes для данных (dev версия)
+volumes:
+  postgres_data_dev:
+    driver: local
+  backend_uploads_dev:
+    driver: local
+  backend_data_dev:
+    driver: local
+
+# Сеть для взаимодействия между контейнерами (dev версия)
+networks:
+  campusflow-network-dev:
+    driver: bridge

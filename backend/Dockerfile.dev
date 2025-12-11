@@ -1,0 +1,41 @@
+# Dockerfile для разработки Spring Boot приложения
+FROM eclipse-temurin:17-jdk-jammy
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Устанавливаем curl для healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Копируем Maven wrapper и pom.xml
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Даем права на выполнение mvnw
+RUN chmod +x ./mvnw
+
+# Скачиваем зависимости
+RUN ./mvnw dependency:go-offline -B
+
+# Копируем исходный код
+COPY src ./src
+
+# Собираем приложение без тестов
+RUN ./mvnw clean package -DskipTests
+
+# Создаем пользователя
+RUN addgroup --system spring && adduser --system spring --ingroup spring
+
+# Создаем директории
+RUN mkdir -p /app/uploads /app/data && \
+    chown -R spring:spring /app
+
+# Переключаемся на пользователя spring
+USER spring:spring
+
+# Открываем порт
+EXPOSE 8080
+
+# Запускаем приложение с dev профилем
+CMD ["java", "-jar", "-Dspring.profiles.active=dev", "target/schedule-1.2.2-test.jar"]

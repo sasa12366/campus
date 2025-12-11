@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2024-11-10--0005-drop-user-batch-fk" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <foreignKeyConstraintExists foreignKeyName="fk_user_batch"/>
+        </preConditions>
+
+        <dropForeignKeyConstraint baseTableName="user" constraintName="fk_user_batch"/>
+    </changeSet>
+
+    <changeSet id="2024-11-10--0005-drop-user-subgroup-fk" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <foreignKeyConstraintExists foreignKeyName="fk_user_subgroup"/>
+        </preConditions>
+
+        <dropForeignKeyConstraint baseTableName="user" constraintName="fk_user_subgroup"/>
+    </changeSet>
+
+    <changeSet id="2024-11-10--0005-make-user-group-nullable" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user"/>
+            <columnExists tableName="user" columnName="group_number"/>
+        </preConditions>
+
+        <!-- Делаем поля nullable -->
+        <dropNotNullConstraint tableName="user" columnName="group_number" columnDataType="VARCHAR(5)"/>
+        <dropNotNullConstraint tableName="user" columnName="subgroup_number" columnDataType="VARCHAR(20)"/>
+    </changeSet>
+
+    <changeSet id="2024-11-10--0005-update-password-length" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user"/>
+            <columnExists tableName="user" columnName="password"/>
+        </preConditions>
+
+        <!-- Обновляем размер поля password для BCrypt -->
+        <modifyDataType tableName="user" columnName="password" newDataType="VARCHAR(255)"/>
+    </changeSet>
+
+</databaseChangeLog>
+

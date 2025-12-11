@@ -1,0 +1,57 @@
+version: '3.8'
+
+# Docker Compose для продакшена
+# Использование: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  postgres:
+    # Оптимизации для продакшена
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    # Оптимизации JVM для продакшена
+    environment:
+      JAVA_OPTS: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:+UseStringDeduplication"
+      SPRING_PROFILES_ACTIVE: docker,prod
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  frontend:
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+# Nginx reverse proxy удален - не нужен для IP-адресов

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2024-11-10--0005-update-role-constraint" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user"/>
+        </preConditions>
+
+        <!-- Удаляем старое ограничение, если оно существует -->
+        <sql>
+            ALTER TABLE "user" DROP CONSTRAINT IF EXISTS user_role_check;
+        </sql>
+
+        <!-- Создаем новое ограничение с обновленным списком ролей -->
+        <sql>
+            ALTER TABLE "user" ADD CONSTRAINT user_role_check 
+            CHECK (role IN ('STUDENT', 'MONITOR', 'TEACHER', 'ADMIN', 'SUPER_ADMIN'));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
+

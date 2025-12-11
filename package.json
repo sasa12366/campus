@@ -1,0 +1,28 @@
+{
+  "devDependencies": {
+    "selenium": "^2.20.0",
+    "selenium-webdriver": "^4.38.0"
+  },
+  "name": "campusflow",
+  "version": "1.0.0",
+  "description": "Современное full-stack приложение для управления расписанием КГУ им. К.Э. Циолковского, состоящее из Spring Boot бэкенда и React фронтенда с современным дизайном и брендингом.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marselleze/campusflow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/marselleze/campusflow/issues"
+  },
+  "homepage": "https://github.com/marselleze/campusflow#readme"
+}

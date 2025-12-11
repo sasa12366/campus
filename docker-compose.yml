@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: campusflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: schedule
+      POSTGRES_USER: schedule_user
+      POSTGRES_PASSWORD: schedule_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - campusflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schedule_user -d schedule"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Spring Boot приложение
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: campusflow-backend
+    restart: unless-stopped
+    environment:
+      # База данных
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/schedule
+      SPRING_DATASOURCE_USERNAME: schedule_user
+      SPRING_DATASOURCE_PASSWORD: schedule_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      
+      # JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      
+      # Liquibase
+      SPRING_LIQUIBASE_ENABLED: true
+      SPRING_LIQUIBASE_CHANGE_LOG: classpath:db/changelog/db.changelog-master.xml
+      
+      # JWT настройки
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      JWT_EXPIRATION: 86400000
+      
+      # Email настройки (настройте под вашего провайдера)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: your-email@gmail.com
+      SPRING_MAIL_PASSWORD: your-app-password
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      
+      # CORS - разрешаем все IP-адреса
+      CORS_ALLOWED_ORIGINS: "*"
+      
+      # Файлы
+      UPLOAD_DIR: /app/uploads
+      
+      # Профиль
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_data:/app/data
+    networks:
+      - campusflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React приложение
+  frontend:
+    build:
+      context: ./schedule-hub-uni-main
+      dockerfile: Dockerfile
+    container_name: campusflow-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - campusflow-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+# Nginx reverse proxy удален - не нужен для IP-адресов
+
+# Именованные volumes для данных
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_data:
+    driver: local
+
+# Сеть для взаимодействия между контейнерами
+networks:
+  campusflow-network:
+    driver: bridge

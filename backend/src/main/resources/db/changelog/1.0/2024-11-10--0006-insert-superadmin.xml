@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2024-11-10--0006-insert-superadmin" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM "user" WHERE email = 'superadmin@campusflow.com'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="user">
+            <column name="first_name" value="Super"/>
+            <column name="last_name" value="Admin"/>
+            <column name="middle_name" value=""/>
+            <column name="email" value="superadmin@campusflow.com"/>
+            <!-- BCrypt hash пароля "admin123" -->
+            <column name="password" value="$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi6"/>
+            <column name="group_number" valueComputed="NULL"/>
+            <column name="subgroup_number" valueComputed="NULL"/>
+            <column name="info" value="Суперадминистратор системы"/>
+            <column name="role" value="SUPER_ADMIN"/>
+            <column name="faculty_id" valueComputed="NULL"/>
+        </insert>
+        
+        <rollback>
+            <delete tableName="user">
+                <where>email = 'superadmin@campusflow.com'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

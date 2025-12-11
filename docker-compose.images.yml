@@ -1,0 +1,17 @@
+version: '3.8'
+
+# Override для деплоя из готовых образов (без сборки)
+# Использование:
+#   docker compose -f docker-compose.yml -f docker-compose.images.yml up -d
+
+services:
+  postgres:
+    image: postgres:15-alpine
+
+  backend:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-marselleze}/${IMAGE_BACKEND_NAME:-campusflow-backend}:${IMAGE_TAG:-latest}
+    build: null
+
+  frontend:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-marselleze}/${IMAGE_FRONTEND_NAME:-campusflow-frontend}:${IMAGE_TAG:-latest}
+    build: null

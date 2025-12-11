@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2024-04-05--0005-schedule" author="PinkyZeus" >
+        <validCheckSum>ANY</validCheckSum>
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="schedule"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="schedule">
+            <column name="id"
+                    type="INTEGER(19, 0)"
+                    autoIncrement="true">
+                <constraints primaryKey="true"
+                             nullable="false"/>
+
+            </column>
+
+            <column name="parity"
+                    type="VARCHAR(30)">
+                <constraints nullable="false"
+                             unique="false"/>
+            </column>
+
+            <column name="subgroup_id"
+                    type="INTEGER(19, 0)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="subject_id"
+                    type="INTEGER(19, 0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="teacher_id"
+                    type="INTEGER(19, 0)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="day_week"
+                    type="VARCHAR(255)">
+                <constraints nullable="false"
+                             unique="false"/>
+            </column>
+            <column name="time_start"
+                    type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_end"
+                    type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="classroom"
+                    type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="schedule" baseColumnNames="subgroup_id" constraintName="fk_schedule_subgroup"
+                                 referencedTableName="subgroup"
+                                 referencedColumnNames="id" deleteCascade="true"/>
+        <addForeignKeyConstraint baseTableName="schedule" baseColumnNames="subject_id" constraintName="fk_schedule_subject"
+                                 referencedTableName="subject"
+                                 referencedColumnNames="id" deleteCascade="true"/>
+        <addForeignKeyConstraint baseTableName="schedule" baseColumnNames="teacher_id" constraintName="fk_schedule_teacher"
+                                 referencedTableName="teacher"
+                                 referencedColumnNames="id" deleteCascade="true"/>
+
+    </changeSet>
+
+
+
+</databaseChangeLog>

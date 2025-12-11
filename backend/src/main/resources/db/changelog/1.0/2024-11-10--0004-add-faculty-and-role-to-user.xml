@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="2024-11-10--0004-add-faculty-to-user" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user"/>
+            <not>
+                <columnExists tableName="user" columnName="faculty_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="user">
+            <column name="faculty_id"
+                    type="INTEGER">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="user" 
+                                 baseColumnNames="faculty_id" 
+                                 constraintName="fk_user_faculty"
+                                 referencedTableName="faculty"
+                                 referencedColumnNames="id" 
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="2024-11-10--0004-add-role-to-user" author="PinkyZeus">
+        <validCheckSum>ANY</validCheckSum>
+        
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user"/>
+            <not>
+                <columnExists tableName="user" columnName="role"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="user">
+            <column name="role"
+                    type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
+
