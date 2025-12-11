@@ -14,15 +14,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.sql.DataSource;
+import java.util.List;
 
-/**
- * Конфигурация безопасности приложения.
- *
- * @version 1.0
- * @author Егор Гришанов
- */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -37,36 +35,31 @@ public class SecurityConfig {
     @Autowired
     private DataSource dataSource;
 
-    /**
-     * Конфигурация цепочки фильтров безопасности.
-     *
-     * @param http объект {@link HttpSecurity} для конфигурации безопасности
-     * @return объект {@link SecurityFilterChain}, содержащий цепочку фильтров безопасности
-     * @throws Exception если возникает ошибка конфигурации
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // CORS по нашему конфигу ниже
                 .cors(Customizer.withDefaults())
                 .csrf().disable()
                 .authorizeHttpRequests()
-                // Открытые эндпоинты для всех
+                // публичные эндпоинты
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/schedule/**").permitAll() // Открываем просмотр расписания для всех
-                .requestMatchers("/api/v1/teacher/**").permitAll() // Открываем просмотр преподавателей для всех
-                .requestMatchers("/api/v1/subject/**").permitAll() // Открываем просмотр предметов для всех
-                .requestMatchers("/api/v1/group/**").permitAll() // Открываем просмотр групп для всех
-                .requestMatchers("/api/v1/subgroup/**").permitAll() // Открываем просмотр подгрупп для всех
-                .requestMatchers("/api/v1/faculty/**").permitAll() // Открываем просмотр факультетов для всех
-                
-                // Защищенные эндпоинты для админов и суперадминов
+                .requestMatchers("/api/v1/schedule/**").permitAll()
+                .requestMatchers("/api/v1/teacher/**").permitAll()
+                .requestMatchers("/api/v1/subject/**").permitAll()
+                .requestMatchers("/api/v1/group/**").permitAll()
+                .requestMatchers("/api/v1/subgroup/**").permitAll()
+                .requestMatchers("/api/v1/faculty/**").permitAll()
+
+                // админские
                 .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/v1/excel/import").hasAnyAuthority("ADMIN", "SUPER_ADMIN")
-                
-                // Эндпоинты для обновления профилей
+
+                // обновление профилей
                 .requestMatchers("/api/v1/user/update/student/").hasAuthority("STUDENT")
                 .requestMatchers("/api/v1/user/update/teacher/").hasAuthority("TEACHER")
-                
+
+                // остальное пока тоже открыто
                 .anyRequest().permitAll()
                 .and()
                 .sessionManagement()
@@ -83,15 +76,32 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Репозиторий для хранения токенов "Запомнить меня".
-     *
-     * @return объект {@link PersistentTokenRepository}, используемый для хранения токенов "Запомнить меня"
-     */
     @Bean
     public PersistentTokenRepository tokenRepository() {
         JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
         tokenRepository.setDataSource(dataSource);
         return tokenRepository;
+    }
+
+    // ВАЖНО: CORS-конфигурация
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // Откуда разрешаем фронту ходить на backend
+        config.setAllowedOrigins(List.of(
+                "http://ksukursk.ru:3000",
+                "http://www.ksukursk.ru:3000",
+                "http://31.130.155.26:3000",
+                "http://localhost:3000"
+        ));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
