@@ -29,7 +29,7 @@ services:
     environment:
       JAVA_OPTS: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:+UseStringDeduplication"
       SPRING_PROFILES_ACTIVE: docker,prod
-      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_SHOW_SQL: "false"
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
     restart: always
     logging:

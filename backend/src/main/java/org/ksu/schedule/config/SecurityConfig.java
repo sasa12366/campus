@@ -90,9 +90,7 @@ public class SecurityConfig {
 
         // Откуда разрешаем фронту ходить на backend
         config.setAllowedOrigins(List.of(
-                "http://ksukursk.ru:3000",
-                "http://www.ksukursk.ru:3000",
-                "http://31.130.155.26:3000",
+                "https://scheduleksu.ru",
                 "http://localhost:3000"
         ));
 

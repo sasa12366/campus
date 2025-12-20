@@ -39,12 +39,12 @@ services:
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       
       # JPA/Hibernate
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       
       # Liquibase
-      SPRING_LIQUIBASE_ENABLED: true
+      SPRING_LIQUIBASE_ENABLED: "false"
       SPRING_LIQUIBASE_CHANGE_LOG: classpath:db/changelog/db.changelog-master.xml
       
       # JWT настройки
@@ -56,8 +56,8 @@ services:
       SPRING_MAIL_PORT: 587
       SPRING_MAIL_USERNAME: your-email@gmail.com
       SPRING_MAIL_PASSWORD: your-app-password
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
       
       # CORS - разрешаем все IP-адреса
       CORS_ALLOWED_ORIGINS: "*"
@@ -91,12 +91,11 @@ services:
     container_name: campusflow-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "3000:80"
     networks:
       - campusflow-network
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
 
 # Nginx reverse proxy удален - не нужен для IP-адресов
 
